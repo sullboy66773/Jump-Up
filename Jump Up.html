@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Jump Up</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #111;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      background: #1e1e1e;
+      width: 100vw;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<audio id="bgm" src="file:///C:/Users/sull1/OneDrive/Desktop/my stuff/things i do not need right now/commercial-upbeat-energetic-rock-354637.mp3" loop></audio>
+
+<script>
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+
+  let width, height;
+  function resize() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+  }
+  window.addEventListener("resize", resize);
+  resize();
+
+  const bgm = document.getElementById("bgm");
+  bgm.volume = 0.5;
+
+  let player = {
+    x: 50,
+    y: height - 60,
+    size: 40,
+    vy: 0,
+    jumpForce: -12,
+    gravity: 0.6,
+    grounded: true
+  };
+
+  const obstacles = [];
+  let speed = 6;
+  let frame = 0;
+
+  function drawPlayer() {
+    ctx.fillStyle = "blue";
+    ctx.fillRect(player.x, player.y, player.size, player.size);
+  }
+
+  function drawObstacles() {
+    ctx.fillStyle = "crimson";
+    obstacles.forEach(obs => {
+      obs.x -= speed;
+      ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+    });
+  }
+
+  function spawnObstacle() {
+    const size = 40;
+    obstacles.push({
+      x: width,
+      y: height - size - 20,
+      w: size,
+      h: size
+    });
+  }
+
+  function updatePlayer() {
+    player.vy += player.gravity;
+    player.y += player.vy;
+
+    if (player.y >= height - player.size - 20) {
+      player.y = height - player.size - 20;
+      player.vy = 0;
+      player.grounded = true;
+    }
+  }
+
+  function checkCollision() {
+    for (let obs of obstacles) {
+      if (
+        player.x < obs.x + obs.w &&
+        player.x + player.size > obs.x &&
+        player.y < obs.y + obs.h &&
+        player.y + player.size > obs.y
+      ) {
+        alert("💥 Game Over! you are horrible at this gane how about you try again because you need to learn on how to play better.");
+        window.location.reload();
+      }
+    }
+  }
+
+  function gameLoop() {
+    frame++;
+    ctx.clearRect(0, 0, width, height);
+
+    drawPlayer();
+    updatePlayer();
+
+    if (frame % 120 === 0) spawnObstacle();
+    drawObstacles();
+    checkCollision();
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  function jump() {
+    if (player.grounded) {
+      player.vy = player.jumpForce;
+      player.grounded = false;
+    }
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.code === "Space" || e.code === "ArrowUp") {
+      jump();
+      if (bgm.paused) bgm.play();
+    }
+  });
+
+  gameLoop();
+</script>
+</body>
+</html>
